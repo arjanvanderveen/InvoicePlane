@@ -6,6 +6,8 @@
 
 _A libre self-hosted web application designed to help you manage invoices, clients, and payments efficiently._
 
+This is a fork of InvoicePlane for my own use.
+
 <br>
 
 [![Curent version](https://img.shields.io/badge/dynamic/json.svg?label=Current%20Version&url=https%3A%2F%2Fapi.github.com%2Frepos%2FInvoicePlane%2FInvoicePlane%2Freleases%2Flatest&query=%24.name&colorB=%23429ae1)](https://www.invoiceplane.com/)
