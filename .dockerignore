@@ -1,5 +1,12 @@
 .gitignore
+.git
 CONTRIBUTING.md
 Dockerfile
-license.txt
+resources/docker/*
+docker-compose.yml
+INSTALLATION.md
+LICENSE.txt
 README.md
+SECURITY.md
+TRANSLATIONS.md
+
