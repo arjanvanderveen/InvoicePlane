@@ -6,8 +6,22 @@
 
 _A libre self-hosted web application designed to help you manage invoices, clients, and payments efficiently._
 
+
+# Fork of InvoicePlane
+
 This is a fork of InvoicePlane for my own use.
 
+This fork implements the following changes:
+
+- Different implementation of a Docker container image. This Docker implementation combines the nginx, php-fpm and cron daemon in one container image making install of an InvoicePlane container very simple. Recurring invoices are by default created at 04:00 in the night without having to configure a separate cron task for this.
+- Add OpenID identity provider login.  
+    This makes it possible to login into InvoicePlane by using an identity provider like Keycloak or alternative. This solution uses a dirty workaround by copying company name and address information from the first user in the database to get the same company name on all invoices.
+- Display the company name on the PDF invoices instead of the user name.
+- The QR code on PDF invoices is huge in the default InvoicePlane repository. This fork displays a QR code with reasonable size.
+
+Refer to [INSTALLATION.md](Installation.md) how to install this fork.
+
+## Original readme.md text of Invoiceplane:
 <br>
 
 [![Curent version](https://img.shields.io/badge/dynamic/json.svg?label=Current%20Version&url=https%3A%2F%2Fapi.github.com%2Frepos%2FInvoicePlane%2FInvoicePlane%2Freleases%2Flatest&query=%24.name&colorB=%23429ae1)](https://www.invoiceplane.com/)
