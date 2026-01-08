@@ -21,7 +21,8 @@
         "setasign/fpdf": "^1.8",
         "smhg/sepa-qr-data": "^1.2",
         "stripe/stripe-php": "^14.10",
-        "vlucas/phpdotenv": "^5.6"
+        "vlucas/phpdotenv": "^5.6",
+        "jumbojett/openid-connect-php": "^1.0"
     },
     "require-dev": {
         "filp/whoops": "^2.18",

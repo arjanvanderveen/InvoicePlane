@@ -93,7 +93,7 @@ if ($invoice->client_phone) {
 ?>
     </div>
     <div id="company">
-        <div><b><?php _htmlsc($invoice->user_name); ?></b></div>
+        <div><b><?php _htmlsc($invoice->user_company); ?></b></div>
 <?php
 if ($invoice->user_vat_id) {
    echo '<div>' . trans('vat_id_short') . ': ' . htmlsc($invoice->user_vat_id) . '</div>';

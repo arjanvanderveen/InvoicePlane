@@ -77,7 +77,25 @@ if ($login_logo) {
             </a>
 
         </form>
-
+<?php
+$openid_provider_url = $_ENV['OPENID_PROVIDER_URL'];
+$openid_client_id = $_ENV['OPENID_CLIENT_ID'];
+$openid_client_secret = $_ENV['OPENID_CLIENT_SECRET'];
+if (!($openid_provider_url == null || $openid_provider_url == ''
+    || $openid_client_id == null || $openid_client_id == ''
+    || $openid_client_secret == null || $openid_client_secret == '')) {
+?>
+        <br>
+        <form method="post" action="<?php echo site_url($this->uri->uri_string()); ?>">
+            <?php _csrf_field(); ?>
+            <input type="hidden" name="btn_openid" value="true">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-unlock fa-margin"></i> OpenID login
+            </button>
+        </form>
+<?php
+}
+?>
     </div>
 </div>
 

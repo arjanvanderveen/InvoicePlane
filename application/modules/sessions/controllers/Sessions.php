@@ -12,6 +12,7 @@ if ( ! defined('BASEPATH')) {
  * @license		https://invoiceplane.com/license.txt
  * @link		https://invoiceplane.com
  */
+use Jumbojett\OpenIDConnectClient;
 
 #[AllowDynamicProperties]
 class Sessions extends Base_Controller
@@ -52,7 +53,113 @@ class Sessions extends Base_Controller
             }
         }
 
+        if (($this->input->post('btn_openid')) || (isset($_REQUEST['code']) && isset($_REQUEST['state']))) {
+            // openid login
+            $openid_provider_url = $_ENV['OPENID_PROVIDER_URL'];
+            $openid_client_id = $_ENV['OPENID_CLIENT_ID'];
+            $openid_client_secret = $_ENV['OPENID_CLIENT_SECRET'];
+            if ($openid_provider_url == null || $openid_provider_url == ''
+                || $openid_client_id == null || $openid_client_id == ''
+                || $openid_client_secret == null || $openid_client_secret == '') {
+                $this->session->set_flashdata('alert_error', 'No OpenID identity provider configured.');
+            } else {
+                $oidc = new OpenIDConnectClient($openid_provider_url,
+                                    $openid_client_id,
+                                    $openid_client_secret);
+                $oidc->setRedirectURL($_ENV['IP_URL'] . 'index.php/sessions/login');
+                $redirect_url=$oidc->getRedirectURL();
+                error_log("OpenID redirect URL = $redirect_url");
+                $oidc->setHttpUpgradeInsecureRequests(false);
+                $oidc->authenticate();
+                $openid_user = $oidc->requestUserInfo();
+                if ($this->authenticate_openid_user($openid_user)) {
+                    if ($this->session->userdata('user_type') == 1) {
+                        redirect('dashboard');
+                    } elseif ($this->session->userdata('user_type') == 2) {
+                        redirect('guest');
+                    }
+                }
+            }
+        }
+
         $this->load->view('session_login', $view_data);
+    }
+
+    /**
+     * Authenticate an OpenID user.
+     * @param mixed $openid_user
+     * @return void
+     */
+    public function authenticate_openid_user($openid_user): bool
+    {
+        $user_email = $openid_user->email;
+        $user_name = $openid_user->name;
+        //check if user is banned
+        $login_log = $this->_login_log_check($user_email);
+        $this->db->where('user_email', $user_email);
+        $query = $this->db->get('ip_users');
+        if ($query->num_rows()) {
+            $user = $query->row();
+        } else {
+            // user does not exist yet
+            // since invoiceplane creates the invoices using the current user, we have
+            // to use a workaround to create the additional user with the company name,
+            // address etc. using the user with user_id 1 to create the invoices a different
+            // user creates so that the new invoices have the correct company name etc.
+            $this->db->where('user_id', 1);
+            $query = $this->db->get('ip_users');
+            $user1 = $query->row();
+            $user = [
+                'user_type' => 1, // admin
+                'user_active' => 1, // active
+                'user_name' => $user_name,
+                'user_email' => $user_email,
+                'user_language' => 'system',
+                'user_password' => 'openid',
+                'user_company' => $user1->user_company,
+                'user_address_1' => $user1->user_address_1,
+                'user_address_2' => $user1->user_address_2,
+                'user_city' => $user1->user_city,
+                'user_state' => $user1->user_state,
+                'user_zip' => $user1->user_zip,
+                'user_country' => $user1->user_country,
+                'user_invoicing_contact' => $user1->user_invoicing_contact,
+                'user_phone' => $user1->user_phone,
+                'user_fax' => $user1->user_fax,
+                'user_mobile' => $user1->user_mobile,
+                'user_web' => $user1->user_web,
+                'user_vat_id' => $user1->user_vat_id,
+                'user_tax_code' => $user1->user_tax_code,
+                'user_all_clients' => 0,
+                'user_subscribernumber' => $user1->user_subscribernumber,
+                'user_bank' => $user1->user_bank,
+                'user_iban' => $user1->user_iban,
+                'user_bic' => $user1->user_bic,
+                'user_remittance_text' => $user1->user_remittance_text,
+                'user_gln' => $user1->user_gln,
+                'user_rcc' => $user1->user_rcc,
+            ];
+            $this->db->insert('ip_users', $user);
+            $id = $this->db->insert_id();
+            //now retrieve the user from the database to be sure
+            $this->db->where('user_email', $user_email);
+            $query = $this->db->get('ip_users');
+            $user = $query->row();
+        }
+        $datetime = date('Y-m-d H:i:s');
+        $session_data = [
+            'user_type'     => $user->user_type,
+            'user_id'       => $user->user_id,
+            'user_name'     => $user->user_name,
+            'user_email'    => $user->user_email,
+            'user_company'  => $user->user_company,
+            'user_language' => $user->user_language ?? 'system',
+            'user_date_created' => $datetime,
+            'user_date_modified' => $datetime,
+        ];
+        $this->session->set_userdata($session_data);
+        $this->_login_log_reset($user_email);
+        return true;
     }
 
     /**
@@ -215,7 +322,7 @@ class Sessions extends Base_Controller
             // Test if a user with this email exists
             $this->db->where('user_email', $email);
             $user = $this->db->get('ip_users')->row();
-            
+
             // Security: Always show the same message regardless of whether email exists
             // This prevents email enumeration attacks
             if ($user) {
@@ -332,29 +439,29 @@ class Sessions extends Base_Controller
     {
         $max_attempts = env('PASSWORD_RESET_IP_MAX_ATTEMPTS', 5);
         $window_minutes = env('PASSWORD_RESET_IP_WINDOW_MINUTES', 60);
-        
+
         $ip_address = $this->input->ip_address();
         $session_key = 'password_reset_attempts_' . md5($ip_address);
-        
+
         // Get current attempts from session
         $attempts = $this->session->userdata($session_key);
-        
+
         if (!$attempts) {
             $attempts = [];
         }
-        
+
         // Clean up old attempts outside the time window
         $cutoff_time = time() - ($window_minutes * 60);
         $attempts = array_filter($attempts, function($timestamp) use ($cutoff_time) {
             return $timestamp > $cutoff_time;
         });
-        
+
         // Check if rate limited
         if (count($attempts) >= $max_attempts) {
             log_message('info', trans('log_ip_rate_limit_check') . ': ' . count($attempts) . ' attempts from IP: ' . $ip_address);
             return true;
         }
-        
+
         return false;
     }
 
@@ -365,17 +472,17 @@ class Sessions extends Base_Controller
     {
         $ip_address = $this->input->ip_address();
         $session_key = 'password_reset_attempts_' . md5($ip_address);
-        
+
         // Get current attempts from session
         $attempts = $this->session->userdata($session_key);
-        
+
         if (!$attempts) {
             $attempts = [];
         }
-        
+
         // Add current timestamp
         $attempts[] = time();
-        
+
         // Store back to session
         $this->session->set_userdata($session_key, $attempts);
     }
@@ -393,28 +500,28 @@ class Sessions extends Base_Controller
     {
         $max_attempts = env('PASSWORD_RESET_EMAIL_MAX_ATTEMPTS', 3);
         $window_hours = env('PASSWORD_RESET_EMAIL_WINDOW_HOURS', 1);
-    
+
         $session_key = 'password_reset_email_' . md5($email);
-        
+
         // Get current attempts from session
         $attempts = $this->session->userdata($session_key);
-        
+
         if (!$attempts) {
             $attempts = [];
         }
-        
+
         // Clean up old attempts outside the time window
         $cutoff_time = time() - ($window_hours * 3600);
         $attempts = array_filter($attempts, function($timestamp) use ($cutoff_time) {
             return $timestamp > $cutoff_time;
         });
-        
+
         // Check if rate limited
         if (count($attempts) >= $max_attempts) {
             log_message('info', trans('log_email_rate_limit_check') . ': ' . count($attempts) . ' attempts for email: ' . $email);
             return true;
         }
-        
+
         return false;
     }
 
@@ -426,17 +533,17 @@ class Sessions extends Base_Controller
     private function _record_email_password_reset_attempt($email)
     {
         $session_key = 'password_reset_email_' . md5($email);
-        
+
         // Get current attempts from session
         $attempts = $this->session->userdata($session_key);
-        
+
         if (!$attempts) {
             $attempts = [];
         }
-        
+
         // Add current timestamp
         $attempts[] = time();
-        
+
         // Store back to session
         $this->session->set_userdata($session_key, $attempts);
     }
@@ -449,7 +556,7 @@ class Sessions extends Base_Controller
     private function _is_bot_request()
     {
         $user_agent = $this->input->user_agent();
-        
+
         // List of common automated tools and bots
         $bot_signatures = [
             'curl',
@@ -468,12 +575,12 @@ class Sessions extends Base_Controller
             'insomnia',
             'paw/',
         ];
-        
+
         // Check if user agent is empty (common with automated tools)
         if (empty($user_agent)) {
             return true;
         }
-        
+
         // Check if user agent contains any bot signatures (case-insensitive)
         $user_agent_lower = strtolower($user_agent);
         foreach ($bot_signatures as $signature) {
@@ -481,7 +588,7 @@ class Sessions extends Base_Controller
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -534,20 +641,20 @@ class Sessions extends Base_Controller
     {
         // Use provided referer or HTTP_REFERER
         $referer = empty($referer) ? ($_SERVER['HTTP_REFERER'] ?? '') : $referer;
-        
+
         // If no referer, use default
         if (empty($referer)) {
             return 'sessions/passwordreset';
         }
-        
+
         // Get base URL
         $base_url = base_url();
-        
+
         // Check if referer starts with base URL (same domain)
         if (strpos($referer, $base_url) === 0) {
             return $referer;
         }
-        
+
         // Referer is external or invalid, use safe default
         return 'sessions/passwordreset';
     }
