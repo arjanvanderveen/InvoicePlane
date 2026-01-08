@@ -9,4 +9,8 @@ LICENSE.txt
 README.md
 SECURITY.md
 TRANSLATIONS.md
+htaccess
+.*
+
+
 

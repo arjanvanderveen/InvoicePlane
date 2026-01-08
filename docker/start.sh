@@ -66,11 +66,65 @@ then
   cp -r /tmp/ip/application/views/* /var/www/html/application/views/
 fi
 
+# set file user rights
 chown nobody:nginx /var/www/html/ipconfig.php;
 chown -R nobody:nginx /var/www/html/uploads;
 chown -R nobody:nginx /var/www/html/assets/core/css;
 chown -R nobody:nginx /var/www/html/application/views;
 
-php-fpm${PHP_VERSION}
+# create supervisord.conf
+cat << EOF > /etc/supervisord.conf
+[supervisord]
+nodaemon = true
+pidfile = /run/supervisord.pid
+#logfile = /dev/stdout
+logfile = /var/log/supervisord.log
+loglevel = info
+user = root
+stdout_maxbytes=0
+stderr_maxbytes=0
+stdout_logfile_maxbytes = 0
+stderr_logfile_maxbytes = 0
+
+[program:cron]
+command=/usr/sbin/crond -f
+user=root
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/dev/stdout  ; Redirect stdout to console
+stderr_logfile=/dev/stderr  ; Redirect stderr to console
+stdout_logfile_maxbytes=0   ; Disable log rotation (since we’re using console)
+stderr_logfile_maxbytes=0   ; Disable log rotation for stderr
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+user=root
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/dev/stdout  ; Redirect stdout to console
+stderr_logfile=/dev/stderr  ; Redirect stderr to console
+stdout_logfile_maxbytes=0   ; Disable log rotation (since we’re using console)
+stderr_logfile_maxbytes=0   ; Disable log rotation for stderr
+
+[program:php-fpm${PHP_VERSION}]
+command=/usr/sbin/php-fpm${PHP_VERSION} --nodaemonize
+user=root
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/dev/stdout  ; Redirect stdout to console
+stderr_logfile=/dev/stderr  ; Redirect stderr to console
+stdout_logfile_maxbytes=0   ; Disable log rotation (since we’re using console)
+stderr_logfile_maxbytes=0   ; Disable log rotation for stderr
+EOF
+
+# create test crontab
+cron_key=`/app/get_ip_cron_key.php`
+cat << EOF > /etc/crontabs/root
+# run this command every day as 4 AM to run the recurring invoices task on invoiceplane
+0 4 * * * /usr/bin/wget -O - http://localhost/invoices/cron/recur/$cron_key > /dev/stdout 2>&1
+EOF
 
 exec "$@"
