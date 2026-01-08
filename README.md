@@ -2,8 +2,6 @@
 
 # _InvoicePlane_
 
-<div align="center">
-
 _A libre self-hosted web application designed to help you manage invoices, clients, and payments efficiently._
 
 
@@ -19,9 +17,11 @@ This fork implements the following changes:
 - Display the company name on the PDF invoices instead of the user name.
 - The QR code on PDF invoices is huge in the default InvoicePlane repository. This fork displays a QR code with reasonable size.
 
-Refer to [INSTALLATION.md](Installation.md) how to install this fork.
+Refer to [INSTALLATION.md](INSTALLATION.md) how to install this fork.
 
 ## Original readme.md text of Invoiceplane:
+
+<div align="center">
 <br>
 
 [![Curent version](https://img.shields.io/badge/dynamic/json.svg?label=Current%20Version&url=https%3A%2F%2Fapi.github.com%2Frepos%2FInvoicePlane%2FInvoicePlane%2Freleases%2Flatest&query=%24.name&colorB=%23429ae1)](https://www.invoiceplane.com/)
