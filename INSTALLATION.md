@@ -35,7 +35,7 @@ podman run --name invoiceplane \
 	--replace -d localhost/invoiceplane
 
 ```
-Now go to ```http://localhost:8052/index.php/setup and follow the wizard. Afterwards, restart the container as follows:
+Now go to ```http://localhost:8052/index.php/setup``` and follow the wizard. Afterwards, restart the container as follows:
 
 ```bash
 podman run --name invoiceplane_dev \
