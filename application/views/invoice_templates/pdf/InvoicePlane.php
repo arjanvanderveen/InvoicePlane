@@ -373,6 +373,6 @@ if ($invoice->invoice_terms) {
 </div>
 <sethtmlpagefooter name="defaultFooter" value="on" />
 <!-- To use the template with page numbering, uncomment the following line -->
-<!-- <sethtmlpagefooter name="footerWithPageNumbers" value="on" /> -->
+<sethtmlpagefooter name="footerWithPageNumbers" value="on" />
 </body>
 </html>
