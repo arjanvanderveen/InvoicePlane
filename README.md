@@ -16,6 +16,11 @@ This fork implements the following changes:
     This makes it possible to login into InvoicePlane by using an identity provider like Keycloak or alternative. This solution uses a dirty workaround by copying company name and address information from the first user in the database to get the same company name on all invoices.
 - Display the company name on the PDF invoices instead of the user name.
 - The QR code on PDF invoices is huge in the default InvoicePlane repository. This fork displays a QR code with reasonable size.
+- Add REST functionality to send the email of an existing invoice. This function emails an existing invoice to the client. This is convenient if you create an invoice directly into the InvoicePlane database (be careful!), and then need to send it to the client. This function uses the cron key for authentication. Use it as follows:
+
+    ```bash
+    /usr/bin/wget -O - http://<IP URL>/invoices/cron/email/<cron key>/<invoice_id>
+    ```
 
 Refer to [INSTALLATION.md](INSTALLATION.md) how to install this fork.
 

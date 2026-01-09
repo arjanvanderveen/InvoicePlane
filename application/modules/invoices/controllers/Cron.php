@@ -165,4 +165,98 @@ class Cron extends Base_Controller
             log_message('debug', '[Cron Recurring Invoices] ' . count($invoices_recurring) . ' recurring invoices processed');
         }
     }
+
+    /**
+     * This function emails an existing invoice to the client. This is convenient if you create an invoice directly into
+     * the InvoicePlane database (be careful!), and then need to send it to the client.
+     * This function uses the cron key for authentication.
+     * @param string|null $cron_key
+     * @param string|null $invoice_id
+     */
+    public function email($cron_key = null, $invoice_id = null)
+    {
+        // Check the provided cron key
+        if ($cron_key != get_setting('cron_key')) {
+            log_message('error', '[Email Invoice] Wrong cron key provided! ' . $cron_key);
+            show_error(trans('wrong_cron_key_provided'), 500);
+            exit('Wrong cron key!');
+        }
+
+        $this->load->model([
+            'invoices/mdl_invoices',
+            'invoices/mdl_invoice_amounts',
+        ]);
+        $this->load->helper('mailer');
+
+        //Get the invoice
+        $this->db->reset_query();
+        $invoice = $this->mdl_invoices->get_by_id($invoice_id);
+        if ( ! $invoice) {
+            $msg = '[Email Invoice] Invoice not found! ' . $invoice_id;
+            log_message('error', $msg);
+            show_error($msg, 500);
+            exit($msg);
+        }
+
+        // Email the new invoice if applicable
+        if (mailer_configured()) {
+
+            // Set the email body, use default email template if available
+            $this->load->model('email_templates/mdl_email_templates');
+
+            $email_template_id = get_setting('email_invoice_template');
+            if ( ! $email_template_id) {
+                $msg = '[Email Invoice] No email template set in the system settings!';
+                log_message('error', $msg);
+                show_error($msg, 500);
+                exit($msg);
+            }
+
+            $email_template = $this->mdl_email_templates->where('email_template_id', $email_template_id)->get();
+            if ($email_template->num_rows() == 0) {
+                $msg = '[Email Invoice] No email template set in the system settings!';
+                log_message('error', $msg);
+                show_error($msg, 500);
+                exit($msg);
+            }
+
+            $tpl = $email_template->row();
+
+            // Prepare the attachments
+            $this->load->model('upload/mdl_uploads');
+            $attachment_files = $this->mdl_uploads->get_invoice_uploads($invoice_id);
+
+            // Prepare the body
+            $body = $tpl->email_template_body;
+            if (mb_strlen($body) != mb_strlen(strip_tags($body))) {
+                $body = htmlspecialchars_decode($body, ENT_COMPAT);
+            } else {
+                $body = htmlspecialchars_decode(nl2br($body), ENT_COMPAT);
+            }
+
+            $from = empty($tpl->email_template_from_email) ?
+                [$invoice->user_email, ''] :
+                [$tpl->email_template_from_email, $tpl->email_template_from_name];
+
+            $subject = empty($tpl->email_template_subject) ?
+                trans('invoice') . ' #' . $invoice->invoice_number :
+                $tpl->email_template_subject;
+
+            $pdf_template = $tpl->email_template_pdf_template;
+            $to           = $invoice->client_email;
+            $cc           = $tpl->email_template_cc;
+            $bcc          = $tpl->email_template_bcc;
+
+            $email_invoice = email_invoice($invoice_id, $pdf_template, $from, $to, $subject, $body, $cc, $bcc, $attachment_files);
+
+            if ($email_invoice) {
+                $this->mdl_invoices->mark_sent($invoice_id);
+            } else {
+                log_message('error', '[Email Invoice] Invoice ' . $invoice_id . 'could not be sent. Please review your Email settings.');
+            }
+        } else {
+            log_message('error', '[Email Invoice] mailer was not configured');
+        }
+    }
+
 }
