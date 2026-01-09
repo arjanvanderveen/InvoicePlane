@@ -41,10 +41,12 @@ RUN mkdir /app && \
     yarn install && \
     yarn build
 
-# add the translations available
+# add the translations available. These translations are made using a community effort
+# and not available in the InvoicePlane repositories. That's why as workaround we download
+# the specific InvoicePlane release here and copy the translations into our own Docker
+# container.
 ADD ${IP_SOURCE}/${IP_VERSION}/${IP_VERSION}.zip /tmp/
 
-#cleanup
 RUN cd /tmp && \
     unzip /tmp/${IP_VERSION}.zip && \
     cp -r ip/application/language/* /var/www/html/application/language/
