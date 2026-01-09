@@ -41,12 +41,6 @@ RUN mkdir /app && \
     yarn install && \
     yarn build
 
-# add the themes available
-RUN cd /tmp && \
-    git clone https://github.com/InvoicePlane/InvoicePlane-Themes && \
-    cp -r /tmp/InvoicePlane-Themes/v1/* /var/www/html/assets/ && \
-    rm -rf /var/www/html/assets/README.md /var/www/html/assets/DEVELOPMENT.md
-
 # add the translations available
 ADD ${IP_SOURCE}/${IP_VERSION}/${IP_VERSION}.zip /tmp/
 
