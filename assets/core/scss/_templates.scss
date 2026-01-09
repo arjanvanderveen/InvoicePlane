@@ -40,7 +40,7 @@ body {
   color: $color_base;
   background: #FFFFFF;
   font-family: sans-serif;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 header {
@@ -60,7 +60,7 @@ header {
 
 .invoice-title {
   color: $color_primary;
-  font-size: 2em;
+  font-size: 1.6em;
   line-height: 1.4em;
   font-weight: normal;
   margin: 20px 0;
@@ -85,9 +85,9 @@ header {
     border-collapse: collapse;
     border-spacing: 0;
     text-align: right;
-    width: 40%;
+    width: 50%;
     margin: 0 0 0 auto;
-    font-size: 12px;
+    font-size: 10px;
 
     td {
       width: auto;
@@ -107,14 +107,14 @@ table.item-table {
   border-collapse: collapse;
   border-spacing: 0;
   margin-bottom: 20px;
-  font-size: 12px;
+  font-size: 9px;
 
   tr:nth-child(2n-1) td {
     background: #F5F5F5;
   }
 
   th {
-    padding: 10px 15px;
+    padding: 5px 5px;
     border-bottom: 1px solid $color_base_light;
     white-space: nowrap;
     text-align: left;
@@ -124,7 +124,7 @@ table.item-table {
   }
 
   td {
-    padding: 10px 15px;
+    padding: 5px 2px;
   }
 
   .invoice-sums {
@@ -145,7 +145,7 @@ table.item-table {
 
 footer {
   text-align: center;
-  font-size: 12px;
+  font-size: 9px;
 }
 
 .text-right {
@@ -158,4 +158,8 @@ footer {
 
 .text-green {
   color: $color_green;
+}
+
+#invoice-qr-code {
+    width: 100px;
 }
