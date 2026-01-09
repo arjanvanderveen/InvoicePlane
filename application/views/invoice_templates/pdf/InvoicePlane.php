@@ -359,18 +359,18 @@ if ($show_qrcode) {
 
 </main>
 
-<div class="invoice-terms">
 <?php
 if ($invoice->invoice_terms) {
 ?>
+<div class="invoice-terms">
     <div class="notes">
         <b><?php _trans('terms'); ?></b><br/>
         <?php echo nl2br(htmlsc($invoice->invoice_terms)); ?>
     </div>
+</div>
 <?php
 }
 ?>
-</div>
 <sethtmlpagefooter name="defaultFooter" value="on" />
 <!-- To use the template with page numbering, uncomment the following line -->
 <sethtmlpagefooter name="footerWithPageNumbers" value="on" />

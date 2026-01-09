@@ -86,7 +86,7 @@ function pdf_create(
     // Set the footer if voucher is invoice and if set in settings
     if ($isInvoice && ! empty($CI->mdl_settings->settings['pdf_invoice_footer'])) {
         $mpdf->setAutoBottomMargin = 'stretch';
-        $mpdf->DefHTMLFooterByName('footerWithPageNumbers', '<div id="footer">' . $CI->mdl_settings->settings['pdf_invoice_footer'] . '</div><div><p align="center">' . str_replace('_', ' ', $filename) . ' - ' . trans('page') . ' {PAGENO} / {nbpg}</p></div>');
+        $mpdf->DefHTMLFooterByName('footerWithPageNumbers', '<div id="footer">' . $CI->mdl_settings->settings['pdf_invoice_footer'] . '</div><div id="footerWithPageNumbers"><p>' . str_replace('_', ' ', $filename) . ' - ' . trans('page') . ' {PAGENO} / {nbpg}</p></div>');
         $mpdf->DefHTMLFooterByName('footer', '<div id="footer">' . $CI->mdl_settings->settings['pdf_invoice_footer'] . '</div>');
         $mpdf->DefHTMLFooterByName('defaultFooter', '<div id="footer">' . $CI->mdl_settings->settings['pdf_invoice_footer'] . '</div>');
     }
@@ -94,7 +94,7 @@ function pdf_create(
     // Set the footer if voucher is quote and if set in settings
     if ( ! $isInvoice && ! empty($CI->mdl_settings->settings['pdf_quote_footer'])) {
         $mpdf->setAutoBottomMargin = 'stretch';
-        $mpdf->DefHTMLFooterByName('footerWithPageNumbers', '<div id="footer">' . $CI->mdl_settings->settings['pdf_invoice_footer'] . '</div><div id="footer">' . $CI->mdl_settings->settings['pdf_quote_footer'] . '</div>');
+        $mpdf->DefHTMLFooterByName('footerWithPageNumbers', '<div id="footer">' . $CI->mdl_settings->settings['pdf_quote_footer'] . '</div><div id="footerWithPageNumbers"><p>' . str_replace('_', ' ', $filename) . ' - ' . trans('page') . ' {PAGENO} / {nbpg}</p></div>');
         $mpdf->DefHTMLFooterByName('footer', '<div id="footer">' . $CI->mdl_settings->settings['pdf_quote_footer'] . '</div>');
         $mpdf->DefHTMLFooterByName('defaultFooter', '<div id="footer">' . $CI->mdl_settings->settings['pdf_quote_footer'] . '</div>');
     }

@@ -107,14 +107,14 @@ table.item-table {
   border-collapse: collapse;
   border-spacing: 0;
   margin-bottom: 20px;
-  font-size: 9px;
+  font-size: 10px;
 
   tr:nth-child(2n-1) td {
     background: #F5F5F5;
   }
 
   th {
-    padding: 5px 5px;
+    padding: 5px 2px;
     border-bottom: 1px solid $color_base_light;
     white-space: nowrap;
     text-align: left;
@@ -135,7 +135,7 @@ table.item-table {
 .invoice-terms {
   color: $color_base_lighter;
   width: 100%;
-  border-top: 2px solid $color_base_lighter;
+  border-top: 1px solid $color_base_lighter;
   padding: 8px 0;
 }
 
@@ -162,4 +162,17 @@ footer {
 
 #invoice-qr-code {
     width: 100px;
+}
+
+#footer {
+    font-size: 11px;
+}
+
+#footerWithPageNumbers {
+    color: $color_base_lighter;
+    font-size: 7px;
+
+    p {
+        text-align: right;
+    }
 }
