@@ -4,10 +4,17 @@ This fork of InvoicePlane is meant to run inside a Docker/Podman container. The 
 To build the image:
 
 ```bash
+podman image build https://github.com/arjanvanderveen/InvoicePlane.git --format docker -t github.com/arjanvanderveen/invoiceplane
+```
+
+or if you have cloned this repository:
+
+```bash
 podman build . -t invoiceplane --format docker
 ```
 
 To create a MariaDB database:
+
 ```sql
 CREATE DATABASE <database name> CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 CREATE USER '<database user>'@'%' IDENTIFIED BY '<database user password>';
@@ -32,14 +39,26 @@ podman run --name invoiceplane \
 	-e DISABLE_SETUP=false \
 	-e SETUP_COMPLETED=false \
 	-p 8052:80 \
-	--replace -d localhost/invoiceplane
+	--replace -d github.com/arjanvanderveen/invoiceplane
 
 ```
-Now go to ```http://localhost:8052/index.php/setup``` and follow the wizard. Afterwards, restart the container as follows:
+Now go to ```http://localhost:8052/index.php/setup``` and follow the welcome wizard. Afterwards, InvoicePlane stores the encryption key in the file
+```/var/www/html/ipconfig.php``` in the Docker container. Now login to the Docker container console and retrieve the encryption key from the config file.
+This is necessary for future updates of the container image in which the config file will be overwritten. We solve this by passing the encryption key
+to future restarts of the container by passing it as environment variable. You can of course chose to use Docker or Podman secrets for this.  
+To login can retrieve the encryption key:
 
 ```bash
-podman run --name invoiceplane_dev \
-	-v invoiceplane_dev_uploads:/var/www/html/uploads \
+podman exec -it invoiceplane sh
+
+grep ENCRYPTION /var/www/html/ipconfig.php
+```
+
+Copy and paste the encryption key values and start the container again. Notice also the difference of the ```DISABLE_SETUP``` and ```SETUP_COMPLETED``` environment variables:
+
+```bash
+podman run --name invoiceplane \
+	-v invoiceplane_uploads:/var/www/html/uploads \
 	-e DISABLE_READ_ONLY=true \
 	-e ENABLE_INVOICE_DELETION=true \
 	-e IP_URL=http://localhost:8052/ \
@@ -48,10 +67,12 @@ podman run --name invoiceplane_dev \
 	-e MYSQL_PORT=3306 \
 	-e MYSQL_USER=<database user> \
 	-e MYSQL_PASSWORD=<database user password> \
+    -e ENCRYPTION_KEY=<encryption key> \
+    -e ENCRYPTION_CIPHER=AES-256 \
 	-e DISABLE_SETUP=true \
 	-e SETUP_COMPLETED=true \
 	-p 8052:80 \
-	--replace -d localhost/invoiceplane
+	--replace -d github.com/arjanvanderveen/invoiceplane
 ```
 
 Good luck with further configuring the InvoicePlane instance.
