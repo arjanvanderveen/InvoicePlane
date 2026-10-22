@@ -18,11 +18,16 @@ RUN apk update                             \
     php${PHP_VERSION}-gd php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysqli php${PHP_VERSION}-openssl \
     php${PHP_VERSION}-xml php${PHP_VERSION}-dom php${PHP_VERSION}-intl php${PHP_VERSION}-bcmath php${PHP_VERSION}-iconv \
     php${PHP_VERSION}-simplexml php${PHP_VERSION}-tokenizer php${PHP_VERSION}-xmlwriter php${PHP_VERSION}-phar \
-    php${PHP_VERSION}-curl composer curl vim yarn git supervisor \
+    php${PHP_VERSION}-curl curl vim yarn git supervisor \
     && mkdir -p /var/www/html/ \
     && mkdir -p /run/nginx; \
     [ -f /usr/bin/php ] && rm -f /usr/bin/php; \
     ln -s /usr/bin/php${PHP_VERSION} /usr/bin/php;
+
+# Instead of adding 'composer' via apk:
+RUN php84 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php84 composer-setup.php --install-dir=/usr/bin --filename=composer \
+    && rm composer-setup.php
 
 # copy invoiceplane sources to web dir
 COPY . /var/www/html/
@@ -37,7 +42,7 @@ RUN mkdir /app && \
     cp /var/www/html/docker/php_fpm_site.conf /etc/php${PHP_VERSION}/php-fpm.d/www.conf && \
     cp /var/www/html/docker/nginx_site.conf /etc/nginx/http.d/default.conf && \
     rm -rf /var/www/html/docker && \
-    /usr/bin/php${PHP_VERSION} /usr/bin/composer.phar update && \
+    /usr/bin/php${PHP_VERSION} /usr/bin/composer update && \
     yarn install && \
     yarn build
 
