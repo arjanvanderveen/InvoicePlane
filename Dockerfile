@@ -1,7 +1,7 @@
 FROM alpine:latest
 LABEL org.opencontainers.image.authors="avdveen@palanthir.nl"
 
-ENV PHP_VERSION="84" \
+ENV PHP_VERSION="85" \
     IP_SOURCE="https://github.com/InvoicePlane/InvoicePlane/releases/download" \
     IP_VERSION="v1.6.3" \
     MYSQL_HOST="mariadb_10_4" \
@@ -25,8 +25,8 @@ RUN apk update                             \
     ln -s /usr/bin/php${PHP_VERSION} /usr/bin/php;
 
 # Instead of adding 'composer' via apk:
-RUN php84 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php84 composer-setup.php --install-dir=/usr/bin --filename=composer \
+RUN php85 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php85 composer-setup.php --install-dir=/usr/bin --filename=composer \
     && rm composer-setup.php
 
 # copy invoiceplane sources to web dir
